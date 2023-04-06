@@ -1,0 +1,279 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+struct node{
+	int key;
+	int info;
+	struct node *right;
+	struct node *left;
+	struct node *root;
+};
+
+void add_element(struct node *el, struct node *el_new);
+
+struct node *add_elements(struct node * el){
+	int key;
+	int info;
+	if (el -> root == NULL){
+		printf("Enter root of your tree\n");
+		printf("Enter key  ");
+		scanf("%d", &key);
+		printf("Enter info  ");
+		scanf("%d", &info);
+		el -> key = key;
+		el -> info = info;
+		el -> root = el;
+		return(el);
+	} else {
+		printf("Enter new elements of your tree\n");
+		printf("Enter key ");
+		scanf("%d", &key);
+		printf("Enter info ");
+		scanf("%d", &info);
+		struct node *el_new = calloc(1, sizeof(struct node));
+		el_new -> key = key;
+		el_new -> info = info;
+		el_new -> root = el -> root;
+		add_element(el, el_new);
+		return(el -> root);
+	}
+
+}
+void add_element(struct node * el, struct node * el_new){
+	if(el -> key > el_new -> key ) {
+		if(el -> left)
+			add_element(el -> left, el_new);
+		else
+			el->left = el_new;
+	} 
+	if(el -> key < el_new -> key) {
+		if(el -> right)
+			add_element(el -> right, el_new);
+		else
+			el->right = el_new;
+	}
+	if(el -> key == el_new -> key){
+		printf("Polzovatel debil\n");
+		free(el_new);
+		add_elements(el->root);
+	}
+
+}
+
+void postfix(struct node *el){
+	if(el == NULL)
+		return;
+	postfix(el -> left);
+	postfix(el -> right);
+	printf("%d|%d  ", el -> key, el -> info);
+}
+
+struct node * search (struct node * el, int key){
+	if (el -> key == key){
+		printf("Element is found - %d | %d\n", el -> key, el -> info);
+		return el;
+	} else if (el -> key < key){
+		if (el -> right){
+			search(el->right, key);
+		} else {
+			printf("Element does't exist\n");
+			return NULL;
+		}	
+	} else if (el -> key > key){
+		if (el -> left){
+			search(el->left, key);
+		} else {
+			printf("Element does't exist\n");
+			return NULL;
+		}
+	}
+}
+
+struct node * help_search(struct node * el, int key){
+	struct node *prev;
+	if (el -> key < key) {
+		if ((el -> right) && (el -> right) -> key != key){
+			prev = help_search(el -> right, key);
+		} else if ((el -> right) && (el -> right) -> key == key){
+			return el;
+	//	} else {
+	//		return NULL;
+		}
+	} else if (el -> key > key){
+		if ((el -> left) && (el -> left) -> key != key){
+			prev = help_search(el -> left, key);
+		} else if ((el -> left) && (el -> left) -> key == key){
+			printf("EL - %d\n", el->key);
+			return el;
+		}
+//	} else {
+//		return NULL;
+	}
+	return prev;
+
+}
+
+void special_search (struct node * el, int key){
+	if (el -> key == key){
+		printf("Element is found - %d | %d\n", el -> key, el -> info);
+      		return;		
+	}
+	if (el -> key < key){
+		if (el -> right){
+			special_search(el->right, key);
+		} else{
+			printf("Special element - %d | %d\n", el->key, el->info);
+			return;
+		}
+	
+	}
+	if (el -> key > key){
+		if (el -> left){
+			special_search(el->left, key);
+		} else{
+			printf("I apologies, but special element doesn't exist\n");
+			return;
+		}
+
+	}
+
+}
+
+struct node * min_el(struct node * el){
+	struct node *min;
+	if (el -> left){
+		min  = min_el(el->left);
+	} else {
+	       	return (el);	
+	}
+	return (min);
+}
+
+void root_changes(struct node * el, struct node * root){
+	if(el == NULL)
+		return;
+	root_changes(el -> left, root);
+	root_changes(el -> right, root);
+	el->root = root;
+}
+
+void delete(struct node * el, int key){
+	struct node * s = search(el, key);
+	struct node * r;
+	struct node * l = help_search(el, key);
+	printf("AL - %d\n", l -> key);
+	struct node * a;
+	if (s != el -> root){
+		if (s == NULL){
+			printf("Element doesn't exist!");
+		} else {
+			if ((s -> right == NULL) && (s -> left == NULL)){
+				if (l -> left && l -> left == s){
+					l -> left = NULL;
+				}
+				else if (l -> right && l -> right == s){
+					l -> right == NULL;	
+				}
+				free(s);
+				return;
+			} else {
+		if (s -> left && !(s -> right)){
+			if (l -> left == s){
+				l -> left = s -> left;
+				//s -> left = NULL;
+				free(s);
+			} else if (l -> right == s){
+				l -> right = s -> left;
+			//	l -> left = NULL;
+				free(s);
+			}
+		}
+		if (!(s -> left) && s -> right){
+			if (l -> left == s){
+				l -> left = s -> right;
+				free (s);
+			}
+			if (l -> right == s){
+				l -> right = s -> right;
+				free (s);
+			}
+		
+		}
+		
+		if (s -> left && s -> right){
+			if (l -> left == s){
+				a = min_el(s -> right);
+		//		r = help_search(el, a -> key);
+				l -> left = a;
+				a -> left = s -> left;
+				a -> right = s -> right;
+				free (s);
+
+			}
+			if (l -> right == s){
+				a = min_el(s -> right);
+				l -> right = a;
+				a -> left = s -> left;
+				a -> right = s -> right;
+				free (s);
+			}
+		}	
+			}			
+		}
+	}
+
+}
+
+int main(){
+	struct node *el = calloc(1, sizeof(struct node));
+	el->root = NULL;
+//	struct node * r = NULL;
+//	struct node * l	= NULL;
+	struct node * h = NULL;
+	int key, info;
+	int n;
+	int exit = 0;
+        while(exit == 0){
+	printf("\n\n1.Add element\n 2.Delete elements\n 3. Obhod\n 4.Search\n 5.Special search\n 6.Exit\n");
+       scanf("%d", &n);
+switch (n) {
+	case 1:
+		el = add_elements(el);
+		printf("%d\n\n", el->info);
+		    break;
+	case 2:
+		printf("Enter key");
+        	scanf("%d", &key);
+		delete(el, key);
+	//	printf("KO");
+	//	printf("YOUR ROOT - %d\n", el -> key);
+            	break;
+	case 3:
+	    postfix(el);
+            break;
+	case 4:
+		printf("Enter key\n");
+		scanf("%d", &key);
+		struct node *el_found;
+		el_found = search(el, key);	
+		// PEREDELAT VYVOD SUKAAAAAAA
+    	    break;
+	case 5:
+	        printf("enter key\n");
+		scanf("%d", &key);
+		special_search(el, key);
+		break;
+	case 6:
+	// UDALIT NAHUY VSEEEEEEEEEEEEEE
+		exit = 1;	
+		break;
+	case 7:
+		printf("Enter key");
+		scanf("%d", &key);
+		h = help_search(el, key);
+		printf("%d", h -> key);
+}       
+	}
+
+	return 0;
+}
